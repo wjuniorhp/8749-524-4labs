@@ -1,0 +1,18 @@
+name: Variaveis do repositorio
+
+on:
+  workflow_dispatch:
+
+
+jobs:
+  vars-repo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Exbir variavel do Ambiente
+        run: echo "O meu ambiente é ${{ vars.AMBIENTE }}"
+      
+      - name: Exbir variavel do Pais
+        run: echo "O meu país é ${{ vars.PAIS }}"
+
+      - name: Exbir variavel do nome
+        run: echo "O meu nome é ${{ vars.NOME }}"
