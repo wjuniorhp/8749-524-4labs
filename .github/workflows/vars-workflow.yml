@@ -1,0 +1,19 @@
+name: Variáveis no Workflow
+
+on:
+  workflow_dispatch:
+
+
+jobs:
+  vars_workflow:
+    runs-on: ubuntu-latest
+    env:
+      Ambiente: "Testes"
+      Versao: "1.5.0"
+      SAUDACAO: "Seja bem-vindo(a) ao workflow de variáveis!"
+    steps:
+      - name: Exibir Variáveis de Ambiente
+        run: |
+          echo "Ambiente: $Ambiente"
+          echo "Versão: $Versao"
+          echo "$SAUDACAO"
