@@ -1,0 +1,25 @@
+name: Execução Manual do Workflow
+
+on:
+  workflow_dispatch:
+
+
+jobs:
+  execucao_manual:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v2
+
+      - name: Configuração do Ambiente
+        run: |
+          echo "Configuração do ambiente para execução manual"
+
+      - name: Execução de Tarefas
+        run: |
+          echo "Executando tarefas específicas do workflow manual"
+          # Adicione aqui os comandos que deseja executar manualmente
+          
+      - name: Finalização
+        run: |
+          echo "Workflow manual concluído com sucesso!"
