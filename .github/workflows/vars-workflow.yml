@@ -3,7 +3,6 @@ name: Variáveis Globais no Workflow
 on:
   workflow_dispatch:
 
-
 env:
     Ambiente: "Testes"
     Versao: "1.5.0"
@@ -30,7 +29,8 @@ jobs:
           echo "Ambiente: $Ambiente"
           echo "Versão: $Versao"
           echo "$SAUDACAO"
-          echo "Tentativas: $tentativa+1"
+          tentativa=$((tentativa + 1))
+          echo "Tentativas: $tentativa"
           
   teste_vars_2:
     runs-on: ubuntu-latest
@@ -41,5 +41,4 @@ jobs:
           echo "Ambiente: $Ambiente"
           echo "Versão: $Versao"
           echo "$SAUDACAO"
-          tentativa=$((tentativa + 2))
-          echo "Tentativas: $tentativa"
+          echo "Tentativas: $((tentativa + 1))"
