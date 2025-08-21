@@ -1,21 +1,45 @@
-name: Variáveis no Workflow
+name: Variáveis Globais no Workflow
 
 on:
   workflow_dispatch:
 
 
+env:
+    Ambiente: "Testes"
+    Versao: "1.5.0"
+    SAUDACAO: "Seja bem-vindo(a) ao workflow de variáveis!"
+    tentativa: 1
+
 jobs:
   vars_workflow:
     runs-on: ubuntu-latest
-    env:
-      Ambiente: "Testes"
-      Versao: "1.5.0"
-      SAUDACAO: "Seja bem-vindo(a) ao workflow de variáveis!"
-      tentativa: 1
     steps:
       - name: Exibir Variáveis de Ambiente
         run: |
           echo "Ambiente: $Ambiente"
           echo "Versão: $Versao"
           echo "$SAUDACAO"
+          echo "Tentativas: $tentativa"
+
+  teste_vars:
+    runs-on: ubuntu-latest
+    needs: vars_workflow
+    steps:
+      - name: Exibir Variáveis de Ambiente
+        run: |
+          echo "Ambiente: $Ambiente"
+          echo "Versão: $Versao"
+          echo "$SAUDACAO"
+          echo "Tentativas: $tentativa+1"
+          
+  teste_vars_2:
+    runs-on: ubuntu-latest
+    needs: teste_vars
+    steps:
+      - name: Exibir Variáveis de Ambiente
+        run: |
+          echo "Ambiente: $Ambiente"
+          echo "Versão: $Versao"
+          echo "$SAUDACAO"
+          tentativa=$((tentativa + 2))
           echo "Tentativas: $tentativa"
