@@ -11,9 +11,11 @@ jobs:
       Ambiente: "Testes"
       Versao: "1.5.0"
       SAUDACAO: "Seja bem-vindo(a) ao workflow de variáveis!"
+      tentativa: 1
     steps:
       - name: Exibir Variáveis de Ambiente
         run: |
           echo "Ambiente: $Ambiente"
           echo "Versão: $Versao"
           echo "$SAUDACAO"
+          echo "Tentativas: $tentativa"
