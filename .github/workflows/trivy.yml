@@ -22,3 +22,5 @@ jobs:
         with:
           image-ref: course-catalog:teste
           format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
