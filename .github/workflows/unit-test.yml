@@ -1,0 +1,20 @@
+name: Teste Unitário
+
+on:
+  workflow_dispatch:
+
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+      
+      - name: Docker build Teste
+        run: docker build -t course-catalog:teste -f course-catalog/Dockerfile course-catalog
+
+      - name: Executando Unit Test
+        run: |
+          docker run --rm -v course-catalog:/course-catalog \
+            course-catalog:teste sh -c "nosetests --with-xunit --with-coverage --cover-package=project test_users.py"
