@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Baixar .zip do Nexus
         run: |
-          curl -vu ${{ secrets.NEXUS_ADMIN }}:${{ secrets.NEXUS_ADMIN_PASS }} -O "${{ secrets.NEXUS_URL_ZIP }}/repository/raw/shell/start-stop.zip"
+          curl -vu ${{ secrets.NEXUS_ADMIN }}:${{ secrets.NEXUS_ADMIN_PASS }} -O "${{ secrets.NEXUS_URL }}/repository/raw/shell/start-stop.zip"
 
       - name: Extrair o arquivo .zip
         run: |
