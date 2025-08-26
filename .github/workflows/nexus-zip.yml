@@ -1,0 +1,22 @@
+name: Download and Extract Zip
+
+on:
+  workflow_dispatch:
+
+jobs:
+  download-and-extract:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar .zip do Nexus
+        run: |
+          curl -vu ${{ secrets.NEXUS_ADMIN }}:${{ secrets.NEXUS_ADMIN_PASS }} -O "${{ secrets.NEXUS_URL_ZIP }}/repository/raw/shell/start-stop.zip"
+
+      - name: Extrair o arquivo .zip
+        run: |
+          unzip start-stop.zip
+
+      - name: Visualizer e listar arquivos extraídos
+        run: | 
+          ls -la
+          cat start-stop.sh
