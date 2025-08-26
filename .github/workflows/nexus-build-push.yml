@@ -1,0 +1,32 @@
+name:  Nexus - Supermario Build/Push
+
+on:
+  workflow_dispatch:
+    
+
+jobs:
+  build_push:
+     runs-on: ubuntu-latest
+
+     steps:
+       - name: Checkout no código
+         uses: actions/checkout@v4
+
+       - name: Configurar Docker para usar o Nexus
+         run: |
+           echo '{"insecure-registries":["'${{ secrets.NEXUS_REGISTRY }}'"]}' | sudo tee /etc/docker/daemon.json
+           sudo systemctl restart docker
+       
+       - name: Login Nexus
+         run: echo "${{ secrets.NEXUS_USER_PASSWORD  }}" | docker login -u ${{ secrets.NEXUS_USER }} ${{secrets.NEXUS_REGISTRY }} --password-stdin
+
+      
+       - name: Build imagem
+         run: | 
+           docker build -t ${{ secrets.NEXUS_REGISTRY }}/${{ vars.NEXUS_IMAGE }}:0.${{ github.run_number}} -f mariohtml5/Dockerfile mariohtml5
+           docker tag ${{ secrets.NEXUS_REGISTRY }}/${{ vars.NEXUS_IMAGE }}:0.${{ github.run_number}} ${{secrets.NEXUS_REGISTRY }}/${{ vars.NEXUS_IMAGE }}:latest
+
+       - name: Push da imagem
+         run: |
+           docker push ${{ secrets.NEXUS_REGISTRY }}/${{ vars.NEXUS_IMAGE }}:0.${{ github.run_number}}
+           docker push ${{ secrets.NEXUS_REGISTRY }}/${{ vars.NEXUS_IMAGE }}:latest
