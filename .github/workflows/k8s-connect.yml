@@ -1,0 +1,28 @@
+name: K8s - Teste de conexão
+
+on:
+  workflow_dispatch:
+
+jobs:
+   k8s-connect:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Instalando kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.33.3'
+
+      - name: Configurando Kubeconfig a partir do Secret
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG_K3S }}" | base64 -d > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Testando conexão com o cluster K3s
+        run: |
+          kubectl get nodes --insecure-skip-tls-verify
+          kubectl get pods --all-namespaces --insecure-skip-tls-verify
