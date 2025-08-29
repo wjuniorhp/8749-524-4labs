@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: supermario
-        image: 34.60.163.6:8082/mario-nexus:latest
+        image: wjuniorhp/8729-mario:0.1 
         ports:
         - containerPort: 8080
