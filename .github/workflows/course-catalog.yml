@@ -110,3 +110,22 @@ jobs:
           kubectl --insecure-skip-tls-verify -n hmg set image deployment/web-initiate-db simple-python-flask-init-db=${{ secrets.NEXUS_REGISTRY }}/${{ vars.NEXUS_IMAGE_PROJECT }}:0.${{ github.run_number}} --record
 
           kubectl --insecure-skip-tls-verify -n hmg set image deployment/web simplepythonflask=${{ secrets.NEXUS_REGISTRY }}/${{ vars.NEXUS_IMAGE_PROJECT }}:0.${{ github.run_number}} --record
+
+  update_argocd:
+    runs-on: ubuntu-latest
+    needs: build_push
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update Kubernetes Manifest
+        run: |
+          sed -i "s|image:.*|image: ${{ secrets.NEXUS_REGISTRY }}/${{ vars.NEXUS_IMAGE_PROJECT }}:0.${{ github.run_number}} |" course-catalog/manifest/web-initiate-db-deployment.yaml
+          sed -i "s|image:.*|image: ${{ secrets.NEXUS_REGISTRY }}/${{ vars.NEXUS_IMAGE_PROJECT }}:0.${{ github.run_number}} |" course-catalog/manifest/web-deployment.yaml
+          git config --global user.name "github-actions"
+          git config --global user.email "action@github.com"
+          git add course-catalog/manifest/
+          git commit -m "Atualiza imagem para v0.${{ github.run_number}}"
+          git push
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
