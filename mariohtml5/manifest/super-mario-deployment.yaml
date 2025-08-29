@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: supermario-deployment
+  labels:
+    app: supermario-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: supermario-deployment
+  template:
+    metadata:
+      labels:
+        app: supermario-deployment
+    spec:
+      containers:
+      - name: supermario
+        image: 34.29.27.206:8082/supermario-nexus:0.2
+        ports:
+        - containerPort: 8080
