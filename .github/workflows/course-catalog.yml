@@ -1,0 +1,112 @@
+name: Pipeline Course Catalog CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sonar-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - uses: sonarSource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_MARIO }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          projectBaseDir: ${{ github.workspace }}/course-catalog
+          args: >
+             -Dsonar.sources=.
+             -Dsonar.projectKey=couse-catalog
+
+  unit-test:
+    runs-on: ubuntu-latest
+    needs: [sonar-scan]
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+      
+      - name: Docker build Teste
+        run: docker build -t course-catalog:teste -f course-catalog/Dockerfile course-catalog
+
+      - name: Executando Unit Test
+        run: |
+          docker run --rm -v course-catalog:/course-catalog \
+            course-catalog:teste sh -c "nosetests --with-xunit --with-coverage --cover-package=project test_users.py"
+
+  trivy-scan:
+    needs: [unit-test]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      
+      - name: Build para trivy-scan
+        run: docker build -t course-catalog:teste -f course-catalog/Dockerfile course-catalog
+
+      - name: Trivy Scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: course-catalog:teste
+          format: 'table'
+          # exit-code: '1'
+          # severity: 'CRITICAL,HIGH'
+
+  build_push:
+     runs-on: ubuntu-latest
+     needs: [trivy-scan]
+
+     steps:
+       - name: Checkout no código
+         uses: actions/checkout@v4
+
+       - name: Configurar Docker para usar o Nexus
+         run: |
+           echo '{"insecure-registries":["'${{ secrets.NEXUS_REGISTRY }}'"]}' | sudo tee /etc/docker/daemon.json
+           sudo systemctl restart docker
+       
+       - name: Login Nexus
+         run: echo "${{ secrets.NEXUS_USER_PASSWORD  }}" | docker login -u ${{ secrets.NEXUS_USER }} ${{secrets.NEXUS_REGISTRY }} --password-stdin
+
+      
+       - name: Build imagem
+         run: | 
+           docker build -t ${{ secrets.NEXUS_REGISTRY }}/${{ vars.NEXUS_IMAGE_PROJECT }}:0.${{ github.run_number}} -f course-catalog/Dockerfile course-catalog
+           docker tag ${{ secrets.NEXUS_REGISTRY }}/${{ vars.NEXUS_IMAGE_PROJECT }}:0.${{ github.run_number}} ${{secrets.NEXUS_REGISTRY }}/${{ vars.NEXUS_IMAGE_PROJECT }}:latest
+
+       - name: Push da imagem
+         run: |
+           docker push ${{ secrets.NEXUS_REGISTRY }}/${{ vars.NEXUS_IMAGE_PROJECT }}:0.${{ github.run_number}}
+           docker push ${{ secrets.NEXUS_REGISTRY }}/${{ vars.NEXUS_IMAGE_PROJECT }}:latest
+
+  homolog-deploy:
+    runs-on: ubuntu-latest
+    needs: build_push
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Instalando kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.33.3'
+
+      - name: Configurando Kubeconfig a partir do Secret
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG_K3S }}" | base64 -d > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Deploy Course Catalog 
+        run: |
+          kubectl --insecure-skip-tls-verify -n hmg set image deployment/web-initiate-db simple-python-flask-init-db=${{ secrets.NEXUS_REGISTRY }}/${{ vars.NEXUS_IMAGE_PROJECT }}:0.${{ github.run_number}} --record
+
+          kubectl --insecure-skip-tls-verify -n hmg set image deployment/web simplepythonflask=${{ secrets.NEXUS_REGISTRY }}/${{ vars.NEXUS_IMAGE_PROJECT }}:0.${{ github.run_number}} --record
